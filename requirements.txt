@@ -1,0 +1,10 @@
+Django>=4.2
+celery>=5
+redis
+pytest
+pytest-django
+fakeredis
+djangorestframework
+flower
+psycopg2-binary
+

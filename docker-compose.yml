@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: recebedores
+      POSTGRES_USER: recebedores
+      POSTGRES_PASSWORD: recebedores
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  django:
+    build: .
+    command: sh -c "python manage.py migrate &&  python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: celery -A recebedores worker --loglevel=info --queues=pedidos_recebedor
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  flower:
+    build: .
+    command: celery -A recebedores flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+
